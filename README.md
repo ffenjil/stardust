@@ -22,13 +22,13 @@ Stardust is a personal portfolio website inspired by Discord's profile card desi
 
 ## Features
 
-- **Discord-Style UI** — Glassmorphism card with familiar Discord aesthetics
-- **Real-Time Spotify Status** — Shows what you're currently listening to with album art and progress bar
-- **Live Discord Presence** — Displays your online/idle/dnd/offline status
-- **Animated Space Background** — Twinkling stars, floating planets (Saturn, Mars, Jupiter, Neptune), and occasional shooting stars
-- **Responsive Design** — Looks great on desktop and mobile
-- **Background Music** — Ambient soundtrack at low volume
-- **Social Links** — Quick access to all your profiles
+- **Discord-Style UI** - Glassmorphism card with familiar Discord aesthetics
+- **Real-Time Spotify Status** - Shows what you're currently listening to with album art and progress bar
+- **Live Discord Presence** - Displays your online/idle/dnd/offline status
+- **Animated Space Background** - Twinkling stars, floating planets (Saturn, Mars, Jupiter, Neptune), and occasional shooting stars
+- **Responsive Design** - Looks great on desktop and mobile
+- **Background Music** - Ambient soundtrack at low volume
+- **Social Links** - Quick access to all your profiles
 
 <br>
 
@@ -55,7 +55,7 @@ Stardust is a personal portfolio website inspired by Discord's profile card desi
    const DISCORD_USER_ID = 'YOUR_DISCORD_USER_ID_HERE';
    ```
 
-3. **Join the Lanyard Discord** — Your account must be in the [Lanyard Discord server](https://discord.gg/lanyard) for the API to track your presence.
+3. **Join the Lanyard Discord** - Your account must be in the [Lanyard Discord server](https://discord.gg/lanyard) for the API to track your presence.
 
 4. **Run locally**
    ```bash
@@ -100,18 +100,18 @@ stardust/
 
 Works on any static hosting:
 
-- **GitHub Pages** — Enable in repo settings
-- **Vercel** — Import and deploy
-- **Netlify** — Drag and drop
-- **VPS** — Apache/Nginx with your domain
+- **GitHub Pages** - Enable in repo settings
+- **Vercel** - Import and deploy
+- **Netlify** - Drag and drop
+- **VPS** - Apache/Nginx with your domain
 
 <br>
 
 ## Credits
 
-- [Lanyard API](https://github.com/Phineas/lanyard) — Real-time Discord presence
-- [Font Awesome](https://fontawesome.com) — Icons
-- [Unsplash](https://unsplash.com) — Banner image
+- [Lanyard API](https://github.com/Phineas/lanyard) - Real-time Discord presence
+- [Font Awesome](https://fontawesome.com) - Icons
+- [Unsplash](https://unsplash.com) - Banner image
 
 <br>
 
