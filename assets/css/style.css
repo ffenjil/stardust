@@ -1,0 +1,606 @@
+/* ============================================
+   Jil's Portfolio - Main Stylesheet
+   Author: Jil (ffenjil)
+   
+   This CSS styles my Discord-themed portfolio.
+   It has a space background with floating planets,
+   a glassmorphism card, and real-time Spotify integration.
+   ============================================ */
+
+
+/* --------------------------------------------
+   COLOR VARIABLES
+   I'm using Discord's color palette here so
+   everything looks consistent with their UI.
+   Change these if you want different colors!
+   -------------------------------------------- */
+:root {
+    --discord-bg: #313338;           /* Main background gray */
+    --discord-dark: #1e1f22;         /* Darker elements */
+    --discord-card: #111214;         /* Card background */
+    --discord-blurple: #5865F2;      /* Discord's signature purple-blue */
+    --discord-green: #23a559;        /* Online status green */
+    --discord-text-header: #f2f3f5;  /* Bright white for headings */
+    --discord-text-normal: #dbdee1;  /* Normal text color */
+    --discord-text-muted: #949ba4;   /* Dimmed/secondary text */
+    --discord-divider: #2e3035;      /* Border/divider lines */
+}
+
+
+/* --------------------------------------------
+   RESET & BASE STYLES
+   This removes default browser styling so
+   everything looks the same across browsers.
+   -------------------------------------------- */
+* {
+    box-sizing: border-box;  /* Makes sizing way easier */
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'gg sans', 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+    background-color: #050505;           /* Almost black background */
+    color: var(--discord-text-normal);
+    height: 100vh;                       /* Full viewport height */
+    display: flex;
+    justify-content: center;             /* Center horizontally */
+    align-items: center;                 /* Center vertically */
+    overflow: hidden;                    /* No scrollbars */
+    position: relative;
+}
+
+
+/* ============================================
+   MAIN PROFILE CARD
+   This is the glassmorphism card that holds
+   all my profile info. It floats up and down!
+   ============================================ */
+.card-container {
+    display: flex;
+    flex-direction: row;                 /* Side by side layout */
+    width: 750px;
+    height: 400px;
+    max-width: 95vw;                     /* Responsive on smaller screens */
+    background-color: rgba(17, 18, 20, 0.85);  /* Semi-transparent dark */
+    backdrop-filter: blur(12px);         /* Blurs the space background behind it */
+    border-radius: 12px;
+    box-shadow: 
+        0 0 60px rgba(0, 0, 0, 0.8),      /* Dark shadow */
+        0 0 20px rgba(88, 101, 242, 0.15); /* Subtle purple glow */
+    overflow: hidden;
+    position: relative;
+    z-index: 10;                         /* Above the canvas background */
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    animation: float 6s ease-in-out infinite;  /* Floating animation */
+}
+
+/* Floating animation - makes the card bob up and down */
+@keyframes float {
+    0%   { transform: translateY(0px); }
+    50%  { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+
+/* --------------------------------------------
+   LEFT SIDEBAR (BANNER AREA)
+   This is the left side with the space image
+   and my avatar on top of it.
+   -------------------------------------------- */
+.banner {
+    width: 35%;
+    height: 100%;
+    /* Cool space nebula image from Unsplash */
+    background: url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=1000&auto=format&fit=crop') center/cover no-repeat;
+    position: relative;
+    border-right: 1px solid var(--discord-divider);
+}
+
+/* Dark gradient overlay on the banner - makes text readable */
+.banner::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(
+        to bottom, 
+        rgba(0,0,0,0.2) 0%,      /* Slight darkening at top */
+        rgba(17, 18, 20, 0.8) 100%  /* Fades to card color at bottom */
+    );
+}
+
+
+/* --------------------------------------------
+   AVATAR & STATUS INDICATOR
+   My profile picture with the online/offline
+   status dot in the corner (like Discord).
+   -------------------------------------------- */
+.avatar-holder {
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);  /* Center it horizontally */
+    z-index: 20;                  /* Above the banner overlay */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.avatar {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;           /* Makes it circular */
+    border: 6px solid rgba(17, 18, 20, 0.6);
+    background: url('../images/icon.png') center/cover no-repeat;
+    background-color: #2c2f33;    /* Fallback if image doesn't load */
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    pointer-events: none;         /* Can't click on it */
+}
+
+
+/* --------------------------------------------
+   STATUS INDICATOR (THE LITTLE DOT)
+   Shows my Discord status in real-time:
+   - Green = Online
+   - Yellow moon = Idle (away)
+   - Red bar = Do Not Disturb
+   - Gray ring = Offline
+   -------------------------------------------- */
+.status-indicator {
+    width: 16px;
+    height: 16px;
+    background-color: #23a559;    /* Default: online green */
+    border: 3px solid #111214;    /* Dark border to separate from avatar */
+    border-radius: 50%;
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    box-sizing: content-box;
+    z-index: 25;
+}
+
+/* Online - solid green circle */
+.status-indicator.online {
+    background-color: #23a559;
+}
+
+/* Idle - yellow circle with moon cutout (like Discord) */
+.status-indicator.idle {
+    background: 
+        radial-gradient(circle at 70% 30%, #111214 30%, transparent 31%),
+        #f0b232;
+}
+
+/* Do Not Disturb - red with horizontal bar through it */
+.status-indicator.dnd {
+    background: 
+        linear-gradient(to bottom, 
+            #f23f43 35%, 
+            #111214 35%, 
+            #111214 65%, 
+            #f23f43 65%
+        );
+}
+
+/* Offline - gray hollow ring */
+.status-indicator.offline {
+    background: 
+        radial-gradient(circle, #111214 45%, #80848e 45%);
+}
+
+
+/* ============================================
+   RIGHT SIDE - CONTENT AREA
+   This holds my name, bio, roles, socials,
+   and the activity/Spotify status.
+   ============================================ */
+.content {
+    width: 65%;
+    padding: 24px;
+    overflow: hidden;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;  /* Spread content evenly */
+}
+
+
+/* --------------------------------------------
+   USER HEADER (NAME & USERNAME)
+   -------------------------------------------- */
+.user-header {
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--discord-divider);
+    padding-bottom: 8px;
+    flex-shrink: 0;
+}
+
+.display-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--discord-text-header);
+}
+
+.username {
+    font-size: 14px;
+    color: var(--discord-text-muted);
+    font-weight: 500;
+}
+
+
+/* --------------------------------------------
+   SECTION TITLES
+   The little "ABOUT ME", "ROLES" headers
+   -------------------------------------------- */
+.section-title {
+    font-size: 11px;
+    text-transform: uppercase;    /* ALL CAPS */
+    font-weight: 800;
+    color: var(--discord-text-muted);
+    margin: 8px 0 4px 0;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+}
+
+
+/* --------------------------------------------
+   BIO TEXT
+   My personal description/about me section
+   -------------------------------------------- */
+.bio-text {
+    font-size: 13px;
+    color: var(--discord-text-normal);
+    line-height: 1.4;
+    flex-shrink: 1;
+}
+
+.bio-text a { 
+    color: #00b0f4;               /* Discord link blue */
+    text-decoration: none; 
+}
+.bio-text a:hover { 
+    text-decoration: underline; 
+}
+
+
+/* --------------------------------------------
+   ROLES (BADGE PILLS)
+   Those little colored tags like on Discord
+   -------------------------------------------- */
+.roles {
+    display: flex;
+    flex-wrap: wrap;              /* Wrap to next line if needed */
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.role {
+    display: flex;
+    align-items: center;
+    background-color: rgba(43, 45, 49, 0.5);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: var(--discord-text-normal);
+    font-weight: 500;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* The little colored dot before each role name */
+.role-color {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+
+/* ============================================
+   ACTIVITY BOX (STELLARIUM)
+   Shows what I'm currently doing when not
+   listening to Spotify. Like Discord's
+   "Playing a game" status.
+   ============================================ */
+.activity {
+    margin-top: 5px;
+    background-color: rgba(30, 31, 34, 0.6);
+    padding: 10px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--discord-divider);
+    flex-shrink: 0;
+}
+
+.activity-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    /* Stellarium app icon */
+    background: url('https://avatars.githubusercontent.com/u/1598823?s=200&v=4') center/cover;
+    background-color: #2c2f33;
+}
+
+.activity-details h4 { 
+    font-size: 12px; 
+    font-weight: 700; 
+    color: #fff; 
+    margin-bottom: 2px;
+}
+.activity-details p { 
+    font-size: 11px; 
+    color: var(--discord-text-normal); 
+    margin: 0; 
+}
+
+
+/* ============================================
+   SOCIAL MEDIA BUTTONS
+   The row of circular icons for my socials.
+   Each one lights up with brand colors on hover!
+   ============================================ */
+.btn-group {
+    margin-top: 12px;
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0;
+    justify-content: flex-start;
+}
+
+.social-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--discord-text-muted);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    font-size: 14px;
+}
+
+/* Hover effect - pops up with glow */
+.social-btn:hover {
+    transform: translateY(-3px);
+    color: #fff;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* Brand colors for each social platform */
+.social-btn.instagram:hover { 
+    background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); 
+    box-shadow: 0 0 10px rgba(225, 48, 108, 0.4); 
+}
+.social-btn.discord:hover { 
+    background: #5865F2; 
+    box-shadow: 0 0 10px rgba(88, 101, 242, 0.4); 
+}
+.social-btn.github:hover { 
+    background: #24292e; 
+    box-shadow: 0 0 10px rgba(36, 41, 46, 0.4); 
+}
+.social-btn.reddit:hover { 
+    background: #FF4500; 
+    box-shadow: 0 0 10px rgba(255, 69, 0, 0.4); 
+}
+.social-btn.x:hover { 
+    background: #000; 
+    border-color: #333; 
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.4); 
+}
+
+
+/* ============================================
+   TOAST NOTIFICATIONS
+   Those little popups that appear at the bottom
+   when you click something (like "Copied!")
+   ============================================ */
+.toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);  /* Hidden below screen */
+    background-color: #1e1f22;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 4px;
+    border-left: 4px solid var(--discord-green);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.6);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);  /* Bouncy animation */
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+}
+
+/* When toast is visible, slide up and fade in */
+.toast.show { 
+    transform: translateX(-50%) translateY(0); 
+    opacity: 1; 
+}
+
+
+/* ============================================
+   MOBILE RESPONSIVE DESIGN
+   On phones, the card becomes vertical instead
+   of horizontal so everything fits nicely.
+   ============================================ */
+@media (max-width: 768px) {
+    .card-container {
+        flex-direction: column;   /* Stack vertically */
+        width: 340px;
+        height: auto;
+        max-height: 90vh;
+        overflow-y: auto;         /* Allow scrolling */
+    }
+    .banner {
+        width: 100%;
+        height: 140px;
+        border-right: none;
+    }
+    .content {
+        width: 100%;
+        overflow: visible;
+        padding: 50px 20px 20px;  /* Extra top padding for avatar */
+    }
+    .avatar-holder {
+        top: 80px;                /* Avatar overlaps banner/content */
+        left: 20px;
+        transform: none;
+        align-items: flex-start;
+    }
+    .activity { 
+        margin-top: 20px; 
+    }
+}
+
+
+/* ============================================
+   SPOTIFY CARD
+   Shows what I'm currently listening to on
+   Spotify with album art, song name, artist,
+   and a real-time progress bar. Updates live
+   using the Lanyard API!
+   ============================================ */
+.spotify-card {
+    margin-top: 5px;
+    background-color: rgba(30, 31, 34, 0.6);
+    padding: 10px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--discord-divider);
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+/* Album art container */
+.spotify-art {
+    flex-shrink: 0;
+    width: 50px;
+    height: 50px;
+}
+
+/* Album art image - fixed size so it doesn't stretch */
+.spotify-art img {
+    width: 50px;
+    height: 50px;
+    min-width: 50px;
+    min-height: 50px;
+    max-width: 50px;
+    max-height: 50px;
+    border-radius: 4px;
+    object-fit: cover;
+    display: block;
+}
+
+/* Song info container */
+.spotify-info {
+    flex: 1;
+    min-width: 0;                 /* Allows text truncation to work */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+}
+
+/* Song title - truncates with "..." if too long */
+.song-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--discord-text-header);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Artist name */
+.artist-name {
+    font-size: 11px;
+    color: var(--discord-text-normal);
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Progress bar background */
+.progress-container {
+    width: 100%;
+    height: 4px;
+    background-color: var(--discord-divider);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 2px;
+}
+
+/* Progress bar fill - Spotify green, animates smoothly */
+.progress-bar {
+    height: 100%;
+    background-color: #1DB954;    /* Spotify's brand green */
+    width: 0%;
+    border-radius: 2px;
+    transition: width 1s linear;  /* Smooth 1 second updates */
+}
+
+/* Time stamps (0:00 - 3:45) */
+.time-stamps {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--discord-text-muted);
+    font-family: monospace;       /* Fixed width numbers look better */
+}
+
+
+/* ============================================
+   MUSIC TOGGLE BUTTON (NOT CURRENTLY USED)
+   This was for a manual play/pause button.
+   Keeping it here in case I want it later.
+   ============================================ */
+.music-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 45px;
+    height: 45px;
+    background: rgba(30, 31, 34, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    color: var(--discord-text-muted);
+    font-size: 18px;
+}
+
+.music-btn:hover {
+    background: rgba(88, 101, 242, 0.3);
+    color: #fff;
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(88, 101, 242, 0.4);
+}
+
+.music-btn.playing {
+    color: #1DB954;
+    animation: pulse 2s infinite;
+}
+
+/* Pulsing glow effect when music is playing */
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 5px rgba(29, 185, 84, 0.3); }
+    50% { box-shadow: 0 0 15px rgba(29, 185, 84, 0.6); }
+}

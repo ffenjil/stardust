@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jil - Finding Purpose</title>
+    
+    <!-- 
+        Hey! This is my personal portfolio website.
+        I've styled it like a Discord profile card because I love that aesthetic.
+        Feel free to look around the code!
+        - Jil (@ffenjil)
+    -->
+    
+    <!-- Font Awesome - I use this for all the social media icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    
+    <!-- My custom styles -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+    <!-- 
+        SPACE BACKGROUND
+        This canvas draws the animated stars, planets, and shooting stars.
+        The magic happens in script.js - check it out!
+    -->
+    <canvas id="spaceCanvas" style="position: absolute; top:0; left:0; width:100%; height:100%;"></canvas>
+
+    <!--
+    ====================
+    PROFILE CARD
+    ====================
+    This is the main Discord-style profile card. It's got that nice glassmorphism effect
+    (basically blurry glass look). The card has two parts:
+    1. Banner - The left side on desktop with my avatar and status dot
+    2. Content - All the info like name, bio, roles, socials, and what I'm up to
+    -->
+    <div class="card-container">
+        
+        <!--
+        BANNER / AVATAR SECTION
+        On desktop this sits on the left side, on mobile it's at the top.
+        Contains my profile picture and my Discord status indicator (online/offline/etc)
+        -->
+        <div class="banner">
+            <div class="avatar-holder">
+                <div class="avatar">
+                    <!-- This little dot shows my real-time Discord status (online, idle, dnd, offline) -->
+                    <!-- The status gets updated automatically via Lanyard API in script.js -->
+                    <div class="status-indicator"></div>
+                </div>
+            </div>
+        </div>
+
+        <!--
+        CONTENT SECTION
+        All the actual info about me - name, bio, roles, social links, and what I'm currently doing
+        -->
+        <div class="content">
+            
+            <!-- My name and username - keeping it simple -->
+            <div class="user-header">
+                <div class="display-name">J.</div>
+                <div class="username">@ffenjil</div>
+            </div>
+
+            <!-- A little something about me - space themed because why not -->
+            <div class="bio-text">
+                Compiling stardust into digital dreams. <br>
+                Architect of virtual constellations. <br>
+                <i>"We are all just code and starstuff."</i>
+            </div>
+
+            <!--
+            ROLES
+            Just some fun Discord-style roles with colored dots.
+            You can customize the colors by changing the background style.
+            -->
+            <div class="section-title">Roles</div>
+            <div class="roles">
+                <div class="role"><div class="role-color" style="background:#E91E63"></div>Nebula Admin</div>
+                <div class="role"><div class="role-color" style="background:#9B59B6"></div>Stargazer</div>
+                <div class="role"><div class="role-color" style="background:#3498DB"></div>Dev</div>
+            </div>
+
+            <!--
+            SOCIAL MEDIA LINKS
+            Each button has its own brand color that shows on hover.
+            Using Font Awesome icons - they're loaded in the head section.
+            target="_blank" opens links in new tab, title shows tooltip on hover.
+            -->
+            <div class="btn-group">
+                <a class="social-btn instagram" href="https://instagram.com/ffenjil" target="_blank" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                <a class="social-btn discord" href="https://discord.com/users/1186375223583440967" target="_blank" title="Discord"><i class="fa-brands fa-discord"></i></a>
+                <a class="social-btn github" href="https://github.com/ffenjil" target="_blank" title="GitHub"><i class="fa-brands fa-github"></i></a>
+                <a class="social-btn reddit" href="https://reddit.com/u/ashchickboom" target="_blank" title="Reddit"><i class="fa-brands fa-reddit-alien"></i></a>
+                <a class="social-btn x" href="https://x.com/ffenjil" target="_blank" title="X / Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+            </div>
+
+            <!--
+            STELLARIUM ACTIVITY
+            This shows up when I'm NOT listening to Spotify.
+            It's like the "Playing a game" status on Discord but for Stellarium (astronomy software).
+            The timer in script.js counts up from when the page loaded.
+            -->
+            <div id="stellarium-section">
+                <div class="section-title">Activity</div>
+                <div class="activity">
+                    <div class="activity-icon"></div>
+                    <div class="activity-details">
+                        <h4>Stellarium</h4>
+                        <p>Observing: <strong>The Night Sky</strong></p>
+                        <p style="color:var(--discord-text-muted)" id="timer">00:00 elapsed</p>
+                    </div>
+                </div>
+            </div>
+
+            <!--
+            SPOTIFY LISTENING STATUS
+            This is the cool part! When I'm listening to Spotify, this section shows up
+            instead of the Stellarium activity. It displays:
+            - Album artwork (pulled from Spotify via Lanyard API)
+            - Song name and artist
+            - Progress bar that updates in real-time
+            - Current time / total duration
+            
+            All of this is powered by Lanyard API which connects to my Discord presence.
+            If you want this for yourself, you need to join the Lanyard Discord server
+            with your account so it can track your Spotify status.
+            -->
+            <div id="spotify-section" style="display: none;">
+                <div class="section-title"><i class="fa-brands fa-spotify" style="color:#1DB954"></i> Listening to Spotify</div>
+                <div class="spotify-card">
+                    <div class="spotify-art">
+                        <img id="spotify-album-art" src="https://i.scdn.co/image/ab67616d0000b2734718e28d24227b9dc7491a5c" alt="Album Art">
+                    </div>
+                    <div class="spotify-info">
+                        <div class="song-title" id="spotify-song">Starboy</div>
+                        <div class="artist-name" id="spotify-artist">The Weeknd, Daft Punk</div>
+                        <div class="progress-container">
+                            <div class="progress-bar" id="spotify-progress"></div>
+                        </div>
+                        <div class="time-stamps">
+                            <span id="spotify-current-time">0:00</span>
+                            <span id="spotify-total-time">3:50</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!--
+    BACKGROUND MUSIC
+    Hans Zimmer vibes playing at 10% volume (set in script.js).
+    It tries to autoplay, but most browsers block that now.
+    So script.js also handles playing it after any user interaction.
+    The 'loop' attribute makes it play forever.
+    -->
+    <audio id="bgm" loop autoplay>
+        <source src="assets/audio/bgm.mp3" type="audio/mpeg">
+    </audio>
+
+    <!--
+    TOAST NOTIFICATION
+    A little popup that appears briefly to confirm actions (like if you click something).
+    Currently not used much, but it's there if you need it.
+    -->
+    <div id="toast" class="toast">
+        <i class="fa-solid fa-check-circle" style="color: var(--discord-green)"></i>
+        <span id="toast-message">Action Successful</span>
+    </div>
+
+    <!-- All the magic happens here - animations, API connections, everything -->
+    <script src="assets/js/script.js"></script>
+</body>
+</html>
