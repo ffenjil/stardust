@@ -1,4 +1,186 @@
+# ffenjil.com - everything is open to everyone.
+#
+# I want this site crawled, indexed, summarised, quoted and trained on.
+# Nothing here is restricted, so there is deliberately not a single
+# Disallow line in this file.
+#
+# NOTE: Cloudflare can prepend its own managed block to this file, which
+# by default disallows the AI crawlers and sets ai-train=no. If that is
+# switched on, what visitors fetch is Cloudflare's rules followed by
+# these, and the stricter named groups win. Turn off the managed
+# robots.txt / AI Crawl Control blocking in the dashboard for this file
+# to be the whole story.
+
+# Content Signals: explicit permission for every use, including
+# AI training and retrieval, which is the opposite of Cloudflare's default.
+Content-Signal: search=yes, ai-input=yes, ai-train=yes, use=full
+
 User-agent: *
+Allow: /
+
+# ---------------------------------------------------------------
+# Named AI crawlers, spelled out.
+#
+# A wildcard Allow above is already permission, but any crawler that
+# finds a group matching its own name uses that group and ignores the
+# wildcard entirely. So these exist to be the specific group that gets
+# matched, and to counter the managed block if it is ever re-enabled.
+# ---------------------------------------------------------------
+
+# OpenAI
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+# Anthropic
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+# Google - Google-Extended governs Gemini training and AI Overviews
+User-agent: Googlebot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: GoogleOther
+Allow: /
+
+# Apple - Applebot-Extended governs Apple Intelligence training
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# Microsoft
+User-agent: bingbot
+Allow: /
+
+User-agent: msnbot
+Allow: /
+
+# Common Crawl - the corpus behind a lot of model training
+User-agent: CCBot
+Allow: /
+
+# Perplexity
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+# Meta
+User-agent: meta-externalagent
+Allow: /
+
+User-agent: meta-externalfetcher
+Allow: /
+
+User-agent: FacebookBot
+Allow: /
+
+# Amazon
+User-agent: Amazonbot
+Allow: /
+
+# ByteDance
+User-agent: Bytespider
+Allow: /
+
+# Cohere
+User-agent: cohere-ai
+Allow: /
+
+User-agent: cohere-training-data-crawler
+Allow: /
+
+# Mistral
+User-agent: MistralAI-User
+Allow: /
+
+# DuckDuckGo
+User-agent: DuckAssistBot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# Allen Institute for AI
+User-agent: AI2Bot
+Allow: /
+
+# Others that crawl for AI and search products
+User-agent: YouBot
+Allow: /
+
+User-agent: Diffbot
+Allow: /
+
+User-agent: Timpibot
+Allow: /
+
+User-agent: omgili
+Allow: /
+
+User-agent: omgilibot
+Allow: /
+
+User-agent: ImagesiftBot
+Allow: /
+
+User-agent: PetalBot
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+User-agent: CloudflareBrowserRenderingCrawler
+Allow: /
+
+# ---------------------------------------------------------------
+# Link preview fetchers. These are what render the card when the site
+# gets pasted into a chat, so they need to reach the page and the
+# Open Graph image.
+# ---------------------------------------------------------------
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: Discordbot
+Allow: /
+
+User-agent: Slackbot
+Allow: /
+
+User-agent: Slackbot-LinkExpanding
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: TelegramBot
+Allow: /
+
+User-agent: redditbot
 Allow: /
 
 Sitemap: https://ffenjil.com/sitemap.xml
