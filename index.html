@@ -3,18 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jil - Finding Purpose</title>
-    
-    <!-- 
+
+    <!--
         Hey! This is my personal portfolio website.
         I've styled it like a Discord profile card because I love that aesthetic.
         Feel free to look around the code!
         - Jil (@ffenjil)
     -->
-    
+
+    <!--
+        SEARCH ENGINES
+        The name and handle both live in the title on purpose - this page's job
+        is to be the top result when someone searches for me by name.
+    -->
+    <title>Jil (@ffenjil) &mdash; Finding Purpose</title>
+    <meta name="description" content="Jil (@ffenjil) - developer, writer and stargazer. A Discord-style profile card with live presence, plus notes from the blog. Compiling stardust into digital dreams.">
+    <meta name="author" content="Jil">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://ffenjil.com/">
+    <meta name="theme-color" content="#05060e">
+
+    <!--
+        FAVICON
+        SVG first so it stays sharp at any size, with the PNG as a fallback
+        for anything that can't do SVG icons.
+    -->
+    <link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml">
+    <link rel="alternate icon" href="assets/images/icon.png" type="image/png">
+    <link rel="apple-touch-icon" href="assets/images/icon.png">
+
+    <!--
+        LINK PREVIEW (Open Graph)
+        This is what shows up when the site gets pasted into Discord, WhatsApp,
+        Slack, iMessage, LinkedIn and so on. The image URL has to be absolute -
+        a relative path here just silently produces no preview at all.
+    -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="ffenjil">
+    <meta property="og:url" content="https://ffenjil.com/">
+    <meta property="og:title" content="Jil (@ffenjil) — Finding Purpose">
+    <meta property="og:description" content="Developer, writer and stargazer. Compiling stardust into digital dreams.">
+    <meta property="og:image" content="https://ffenjil.com/assets/images/og.jpg">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Jil (@ffenjil) - ffenjil.com, with a ringed planet against a star field">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Same thing again for X/Twitter, which ignores most of the og: tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@ffenjil">
+    <meta name="twitter:creator" content="@ffenjil">
+    <meta name="twitter:title" content="Jil (@ffenjil) — Finding Purpose">
+    <meta name="twitter:description" content="Developer, writer and stargazer. Compiling stardust into digital dreams.">
+    <meta name="twitter:image" content="https://ffenjil.com/assets/images/og.jpg">
+    <meta name="twitter:image:alt" content="Jil (@ffenjil) - ffenjil.com, with a ringed planet against a star field">
+
+    <!--
+        STRUCTURED DATA
+        Tells Google this page is a person, and that all these accounts are the
+        same person. This is what feeds the knowledge panel for a name search.
+    -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Jil",
+      "alternateName": "ffenjil",
+      "url": "https://ffenjil.com/",
+      "image": "https://ffenjil.com/assets/images/icon.png",
+      "description": "Developer, writer and stargazer. Compiling stardust into digital dreams.",
+      "sameAs": [
+        "https://blog.ffenjil.com",
+        "https://github.com/ffenjil",
+        "https://x.com/ffenjil",
+        "https://instagram.com/ffenjil"
+      ]
+    }
+    </script>
+
+    <!-- Warm up the icon CDN connection before the stylesheet actually needs it -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+
     <!-- Font Awesome - I use this for all the social media icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-    
+
     <!-- My custom styles -->
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
@@ -68,8 +141,9 @@
             <!-- A little something about me - space themed because why not -->
             <div class="bio-text">
                 Compiling stardust into digital dreams. <br>
-                Architect of virtual constellations. <br>
-                <i>"We are all just code and starstuff."</i>
+                Architect of virtual constellations. Now writing &mdash; blog's below. <br>
+                <i>"Choose peace over a person &mdash; but not from hurt. Loneliness is
+                missing them; aloneness is finding yourself."</i>
             </div>
 
             <!--
@@ -95,6 +169,7 @@
                 <a class="social-btn discord" href="https://discord.com/users/1186375223583440967" target="_blank" title="Discord"><i class="fa-brands fa-discord"></i></a>
                 <a class="social-btn github" href="https://github.com/ffenjil" target="_blank" title="GitHub"><i class="fa-brands fa-github"></i></a>
                 <a class="social-btn x" href="https://x.com/ffenjil" target="_blank" title="X / Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+                <a class="social-btn blog" href="https://blog.ffenjil.com" target="_blank" title="Blog"><i class="fa-solid fa-blog"></i></a>
             </div>
 
             <!--
@@ -132,7 +207,16 @@
                 <div class="section-title"><i class="fa-brands fa-spotify" style="color:#1DB954"></i> Listening to Spotify</div>
                 <div class="spotify-card">
                     <div class="spotify-art">
-                        <img id="spotify-album-art" src="https://i.scdn.co/image/ab67616d0000b2734718e28d24227b9dc7491a5c" alt="Album Art">
+                        <!--
+                            Placeholder only. script.js swaps this for the real album art
+                            the moment Lanyard reports a track. It used to point at a
+                            hardcoded Spotify CDN URL, which has since gone dead and was
+                            costing a 404 on every single page load - browsers fetch img
+                            sources even inside a display:none parent. Inline SVG costs
+                            no request at all.
+                        -->
+                        <img id="spotify-album-art" alt="Album art"
+                             src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50'%3E%3Crect width='50' height='50' fill='%232c2f33'/%3E%3C/svg%3E">
                     </div>
                     <div class="spotify-info">
                         <div class="song-title" id="spotify-song">Starboy</div>

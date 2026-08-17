@@ -250,7 +250,11 @@ body {
 .bio-text {
     font-size: 13px;
     color: var(--discord-text-normal);
-    line-height: 1.4;
+    /* 1.35 rather than 1.4 buys a few px of headroom in the fixed-height card.
+       'gg sans'/Segoe UI only exist on some machines, so elsewhere this text
+       renders in a fallback with slightly taller metrics - without the slack
+       the last line of the quote gets clipped off on macOS and Linux. */
+    line-height: 1.35;
     flex-shrink: 1;
 }
 
@@ -385,9 +389,14 @@ body {
     box-shadow: 0 0 10px rgba(36, 41, 46, 0.4); 
 }
 .social-btn.x:hover {
-    background: #000; 
-    border-color: #333; 
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.4); 
+    background: #000;
+    border-color: #333;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+}
+/* Blog - classic feed orange, since a blog has no brand colour of its own */
+.social-btn.blog:hover {
+    background: #f26522;
+    box-shadow: 0 0 10px rgba(242, 101, 34, 0.4);
 }
 
 
