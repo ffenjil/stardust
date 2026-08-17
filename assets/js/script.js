@@ -32,6 +32,15 @@ const TAU = Math.PI * 2;
 // so the edges come out smooth without any extra work per frame.
 const SS = 2;
 
+// How many frames make up one full turn of a planet. The trick that makes
+// rotation affordable: I bake the surface ONCE into a flat map that wraps
+// around the whole globe, then each frame is just that map sampled at a
+// different offset. Re-running the noise for every frame would take seconds
+// and freeze the page on load.
+const ROT_FRAMES = 20;
+const MAP_W = 256;   // Surface map covers a full 360 degrees of longitude
+const MAP_H = 128;   // ...and 180 degrees of latitude
+
 // Where the sun is. It's off-screen up and to the left, tilted slightly
 // toward the viewer so we see a decent crescent instead of a flat disc.
 // Remember canvas Y points DOWN, so negative Y means "up".
@@ -139,6 +148,7 @@ const planets = [
         rim: '#ffeccb',           // Hazy atmosphere colour on the lit edge
         rimStrength: 0.30,
         ambient: 0.05,            // How lit the night side is
+        rotPeriod: 55,            // Seconds for one full turn
         // Ring geometry, as multiples of the planet radius
         ringInner: 1.26,
         ringOuter: 2.32,
@@ -152,12 +162,13 @@ const planets = [
         surface: 'rocky',         // Mottled terrain, dark basins, polar caps
         x: -300,
         y: 0,
-        size: 15,
+        size: 22,                 // Was 15 - too small for any surface detail to read
         dx: 0.35,                 // Faster than Saturn
         colors: ['#d9603b', '#8c3a22'],  // Rust red
         rim: '#ffb08a',
         rimStrength: 0.14,        // Thin atmosphere, so barely any rim
-        ambient: 0.04
+        ambient: 0.04,
+        rotPeriod: 80
     },
     {
         name: 'Jupiter',
@@ -170,7 +181,8 @@ const planets = [
         colors: ['#e8cfa8', '#9c6a43'],  // Cream zones -> brown belts
         rim: '#ffe2b8',
         rimStrength: 0.34,
-        ambient: 0.05
+        ambient: 0.05,
+        rotPeriod: 45             // Jupiter really is the fastest spinner
     },
     {
         name: 'Neptune',
@@ -178,12 +190,13 @@ const planets = [
         surface: 'ice',           // Smooth deep blue with a faint storm
         x: -900,
         y: 0,
-        size: 28,
+        size: 34,                 // Was 28 - it read as a flat blue dot
         dx: 0.18,
-        colors: ['#5b8fd6', '#1d3f7a'],  // Bright blue -> deep navy
+        colors: ['#5b8fd6', '#16306a'],  // Bright blue -> deep navy
         rim: '#bcdcff',
         rimStrength: 0.40,        // Thick hazy atmosphere
-        ambient: 0.05
+        ambient: 0.05,
+        rotPeriod: 65
     }
 ];
 
@@ -198,42 +211,63 @@ const planets = [
 // ============================================
 const scratchRgb = [0, 0, 0];
 
+// Shortest angular distance between two longitudes, so a feature sitting
+// near 0/360 doesn't get torn in half at the join.
+function lonDelta(a, b) {
+    let d = a - b;
+    while (d > Math.PI) d -= TAU;
+    while (d < -Math.PI) d += TAU;
+    return d;
+}
+
+// lon runs the full 0..2PI, lat runs -PI/2..PI/2.
+//
+// Everything samples the noise on a CIRCLE - fbm(cos(lon)*k, sin(lon)*k) -
+// rather than feeding lon in directly. That's what makes the map wrap
+// seamlessly: longitude 0 and longitude 2PI land on the same noise
+// coordinates, so there's no visible seam when the planet turns past it.
 function surfaceColor(p, lon, lat, out) {
     const c0 = p._rgb0, c1 = p._rgb1;
+    const cx = Math.cos(lon), cz = Math.sin(lon);
     let t;
 
     if (p.surface === 'gas') {
-        // JUPITER - squashing the longitude frequency way down and
-        // cranking the latitude frequency up smears the noise sideways,
-        // which is exactly how belts and zones look.
-        const swirl = fbm(lon * 1.6 + 10, lat * 9.0, 4);
+        // JUPITER - a low longitude frequency against a high latitude one
+        // smears the noise sideways, which is exactly how belts and zones look
+        const swirl = fbm(cx * 1.6 + 10, cz * 1.6 + lat * 9.0, 4);
         const band = Math.sin(lat * 7.4 + swirl * 2.4);
         t = smoothstep(0.16, 0.84, clamp01(0.5 + 0.5 * band));
 
-        // A little fine turbulence so the band edges aren't ruler-straight
-        t = clamp01(t + (fbm(lon * 5.0 + 60, lat * 14.0, 3) - 0.5) * 0.22);
+        // Fine turbulence so the band edges aren't ruler-straight
+        t = clamp01(t + (fbm(cx * 5.0 + 60, cz * 5.0 + lat * 14.0, 3) - 0.5) * 0.22);
 
     } else if (p.surface === 'banded') {
-        // SATURN - same idea as Jupiter but much gentler. Saturn's bands
-        // are genuinely subtle compared to Jupiter's.
-        const swirl = fbm(lon * 1.2 + 40, lat * 6.0, 3);
+        // SATURN - same idea, much gentler. Saturn's bands really are subtle
+        // next to Jupiter's.
+        const swirl = fbm(cx * 1.2 + 40, cz * 1.2 + lat * 6.0, 3);
         const band = Math.sin(lat * 9.0 + swirl * 1.2);
         t = 0.30 + clamp01(0.5 + 0.5 * band) * 0.42;
 
     } else if (p.surface === 'rocky') {
         // MARS - high frequency mottling for the terrain...
-        const n = fbm(lon * 3.4 + 70, lat * 3.4, 5);
+        const n = fbm(cx * 3.4 + 70, cz * 3.4 + lat * 3.4, 5);
         t = smoothstep(0.34, 0.72, n);
 
-        // ...plus big dark regions, like Syrtis Major
-        const basin = fbm(lon * 1.7 + 200, lat * 1.7 + 90, 3);
+        // ...plus big dark regions, the Syrtis Major sort of thing
+        const basin = fbm(cx * 1.7 + 200, cz * 1.7 + lat * 1.7, 3);
         t *= mix(1, 0.5, smoothstep(0.54, 0.80, basin));
 
     } else {
-        // NEPTUNE - mostly smooth, with faint banding you have to look for
-        const swirl = fbm(lon * 1.1 + 130, lat * 5.0, 3);
-        const band = Math.sin(lat * 5.4 + swirl * 1.5);
-        t = 0.28 + clamp01(0.5 + 0.5 * band) * 0.46;
+        // NEPTUNE - banded like the others, but the bands are stretched much
+        // further and broken up into streaks. Left as near-flat blue it just
+        // read as a plastic ball.
+        const swirl = fbm(cx * 0.9 + 130, cz * 0.9 + lat * 4.2, 4);
+        const band = Math.sin(lat * 5.0 + swirl * 1.8);
+        t = 0.26 + clamp01(0.5 + 0.5 * band) * 0.48;
+
+        // Bright methane cloud streaks, stretched hard along longitude
+        const streak = fbm(cx * 2.6 + 500, cz * 2.6 + lat * 16.0, 3);
+        t = clamp01(t + smoothstep(0.62, 0.86, streak) * 0.38);
     }
 
     out[0] = mix(c1[0], c0[0], t);
@@ -243,9 +277,8 @@ function surfaceColor(p, lon, lat, out) {
     // --- Per-planet extras that sit on top of the base colour ---
 
     if (p.surface === 'gas') {
-        // The Great Red Spot. It's an oval, and it sits in Jupiter's
-        // southern hemisphere.
-        const sx = (lon - 0.42) / 0.36;
+        // The Great Red Spot, down in the southern hemisphere
+        const sx = lonDelta(lon, 2.30) / 0.42;
         const sy = (lat + 0.30) / 0.15;
         const d = Math.sqrt(sx * sx + sy * sy);
         if (d < 1.25) {
@@ -257,9 +290,9 @@ function surfaceColor(p, lon, lat, out) {
     }
 
     if (p.surface === 'rocky') {
-        // Polar ice caps. Latitude maxes out at ±PI/2 (~1.571), so
-        // anything past ~1.15 is close enough to the pole to freeze.
-        const wobble = fbm(lon * 4.0 + 300, lat * 4.0, 3) * 0.22;
+        // Polar ice caps. Latitude maxes out at ±PI/2 (~1.571), so anything
+        // past about 1.13 is close enough to the pole to freeze.
+        const wobble = fbm(cx * 4.0 + 300, cz * 4.0 + lat * 4.0, 3) * 0.22;
         const cap = smoothstep(1.13, 1.42, Math.abs(lat) + wobble);
         out[0] = mix(out[0], 236, cap);
         out[1] = mix(out[1], 240, cap);
@@ -267,15 +300,24 @@ function surfaceColor(p, lon, lat, out) {
     }
 
     if (p.surface === 'ice') {
-        // Neptune's dark storm - same trick as the Red Spot, darker
-        const sx = (lon + 0.38) / 0.30;
-        const sy = (lat - 0.22) / 0.13;
+        // Neptune's Great Dark Spot, with a bright companion cloud trailing it
+        const sx = lonDelta(lon, 4.05) / 0.34;
+        const sy = (lat - 0.22) / 0.14;
         const d = Math.sqrt(sx * sx + sy * sy);
         if (d < 1.2) {
-            const s = smoothstep(1.1, 0.35, d) * 0.6;
-            out[0] = mix(out[0], 18, s);
-            out[1] = mix(out[1], 38, s);
-            out[2] = mix(out[2], 82, s);
+            const s = smoothstep(1.1, 0.35, d) * 0.65;
+            out[0] = mix(out[0], 14, s);
+            out[1] = mix(out[1], 32, s);
+            out[2] = mix(out[2], 74, s);
+        }
+        const bx = lonDelta(lon, 4.62) / 0.20;
+        const by = (lat - 0.34) / 0.07;
+        const bd = Math.sqrt(bx * bx + by * by);
+        if (bd < 1.1) {
+            const s = smoothstep(1.0, 0.2, bd) * 0.55;
+            out[0] = mix(out[0], 226, s);
+            out[1] = mix(out[1], 240, s);
+            out[2] = mix(out[2], 255, s);
         }
     }
 }
@@ -284,33 +326,62 @@ function surfaceColor(p, lon, lat, out) {
 // ============================================
 // BAKING A PLANET
 //
-// This is the heart of it. We walk every pixel of
-// a square, work out where on the sphere it lands,
-// colour it, light it, and write it into an image.
+// Three stages, and splitting them up is the whole
+// reason rotation is affordable:
 //
-// It runs ONCE per planet at startup. After that
-// every frame is just a drawImage, which is far
-// cheaper than what this used to do (rebuilding
-// gradients 60 times a second).
+//   1. bakeSurfaceMap - run the noise ONCE over a
+//      flat map of the entire globe. This is the
+//      expensive part.
+//   2. bakeShading - work out the lighting for each
+//      pixel of the disc, ONCE. Rotating a planet
+//      doesn't move the sun, so this never changes.
+//   3. composeFrame - multiply the two together at
+//      some longitude offset. Just array lookups,
+//      so it's cheap enough to run 20 times per
+//      planet at startup.
+//
+// Doing it naively - re-running the noise for every
+// rotation frame - took seconds and froze the page.
 // ============================================
-function bakePlanet(p) {
+
+// Stage 1: the surface, unrolled flat. Equirectangular, so x is longitude
+// all the way around and y is latitude pole to pole.
+function bakeSurfaceMap(p) {
+    const buf = new Uint8ClampedArray(MAP_W * MAP_H * 3);
+
+    for (let y = 0; y < MAP_H; y++) {
+        const lat = ((y + 0.5) / MAP_H - 0.5) * Math.PI;
+        for (let x = 0; x < MAP_W; x++) {
+            const lon = ((x + 0.5) / MAP_W) * TAU;
+            surfaceColor(p, lon, lat, scratchRgb);
+            const i = (y * MAP_W + x) * 3;
+            buf[i]     = scratchRgb[0];
+            buf[i + 1] = scratchRgb[1];
+            buf[i + 2] = scratchRgb[2];
+        }
+    }
+    return buf;
+}
+
+// Stage 2: for every pixel of the disc, where does it land on the sphere,
+// how lit is it, and how opaque is it. None of this depends on rotation.
+function bakeShading(p) {
     const R = Math.max(6, Math.round(p.size * SS));
     const D = R * 2;
+    const n = D * D;
 
-    const cvs = document.createElement('canvas');
-    cvs.width = D;
-    cvs.height = D;
-    const c = cvs.getContext('2d');
-
-    const img = c.createImageData(D, D);
-    const data = img.data;
+    const shade  = new Float32Array(n);       // Light multiplier
+    const rimAdd = new Float32Array(n * 3);   // Atmospheric rim, added on top
+    const alpha  = new Uint8ClampedArray(n);
+    const uArr   = new Uint16Array(n);        // Where to look in the surface map
+    const vArr   = new Uint16Array(n);
 
     const amb = p.ambient;
     const rim = p._rimRgb;
 
     for (let py = 0; py < D; py++) {
         for (let px = 0; px < D; px++) {
-            const i = (py * D + px) * 4;
+            const k = py * D + px;
 
             // Map the pixel into -1..1 across the disc
             const nx = (px + 0.5) / R - 1;
@@ -319,56 +390,90 @@ function bakePlanet(p) {
 
             // Outside the circle - leave it fully transparent
             if (r2 >= 1) {
-                data[i + 3] = 0;
+                alpha[k] = 0;
                 continue;
             }
 
-            // Z component of the surface normal. Because the sphere is a
-            // unit sphere, the normal and the position are the same thing.
+            // Z component of the surface normal. On a unit sphere the normal
+            // and the position are the same thing.
             const nz = Math.sqrt(1 - r2);
 
-            // Convert to sphere coordinates. This is the bit that actually
-            // sells it as a ball: features bunch up toward the edges
-            // instead of running flat off the side like a sticker.
+            // Sphere coordinates. This is what actually sells it as a ball:
+            // features bunch up toward the edges instead of running flat off
+            // the side like a sticker.
             const lon = Math.atan2(nx, nz);
             const lat = Math.asin(ny < -1 ? -1 : (ny > 1 ? 1 : ny));
 
-            surfaceColor(p, lon, lat, scratchRgb);
+            let u = Math.round((lon / TAU + 1) * MAP_W) % MAP_W;
+            let v = Math.round((lat / Math.PI + 0.5) * MAP_H - 0.5);
+            if (v < 0) v = 0;
+            else if (v >= MAP_H) v = MAP_H - 1;
+            uArr[k] = u;
+            vArr[k] = v;
 
             // Lambert shading. Two separate jobs here, and it matters that
             // they stay separate:
-            //   - 'shade' softens the day/night boundary into a gradual curve
+            //   - 'sh' softens the day/night boundary into a gradual curve
             //   - 'lambert' keeps a real falloff ACROSS the lit face, so the
             //     brightest point is wherever the sun actually is
             // Smoothstepping straight to 1 does the first job but destroys the
             // second, which leaves the whole day side evenly lit and flat.
             const ndotl = nx * LIGHT[0] + ny * LIGHT[1] + nz * LIGHT[2];
             const lambert = ndotl > 0 ? ndotl : 0;
-            const shade = smoothstep(-0.16, 0.16, ndotl);
-            let intensity = amb + (1 - amb) * shade * (0.34 + 0.66 * Math.pow(lambert, 0.6));
+            const sh = smoothstep(-0.16, 0.16, ndotl);
+            let intensity = amb + (1 - amb) * sh * (0.34 + 0.66 * Math.pow(lambert, 0.6));
 
             // Limb darkening - real spheres fall off toward the edge
             intensity *= 0.55 + 0.45 * Math.pow(nz, 0.45);
+            shade[k] = intensity;
 
-            let r = scratchRgb[0] * intensity;
-            let g = scratchRgb[1] * intensity;
-            let b = scratchRgb[2] * intensity;
-
-            // Atmospheric rim. Only on the lit limb - this is the thin
-            // bright edge you see on real planet photos. It replaces the
-            // old shadowBlur halo, which made them look like glowing orbs.
-            const rimAmt = Math.pow(1 - nz, 3) * Math.max(ndotl, 0) * p.rimStrength * 255;
-            r += rim[0] / 255 * rimAmt;
-            g += rim[1] / 255 * rimAmt;
-            b += rim[2] / 255 * rimAmt;
-
-            data[i]     = r > 255 ? 255 : r;
-            data[i + 1] = g > 255 ? 255 : g;
-            data[i + 2] = b > 255 ? 255 : b;
+            // Atmospheric rim. Only on the lit limb - the thin bright edge you
+            // see on real planet photos. This replaces the old shadowBlur
+            // halo, which made them look like glowing orbs.
+            const rimAmt = Math.pow(1 - nz, 3) * lambert * p.rimStrength;
+            rimAdd[k * 3]     = rim[0] * rimAmt;
+            rimAdd[k * 3 + 1] = rim[1] * rimAmt;
+            rimAdd[k * 3 + 2] = rim[2] * rimAmt;
 
             // Feather the very edge so the limb isn't a jagged staircase
-            data[i + 3] = 255 * smoothstep(0, 1.8 / R, 1 - Math.sqrt(r2));
+            alpha[k] = 255 * smoothstep(0, 1.8 / R, 1 - Math.sqrt(r2));
         }
+    }
+
+    return { R: R, D: D, shade: shade, rimAdd: rimAdd, alpha: alpha, uArr: uArr, vArr: vArr };
+}
+
+// Stage 3: surface map x lighting, at one rotation offset. Pure lookups.
+function composeFrame(p, shift) {
+    const s = p._shading;
+    const D = s.D;
+    const map = p._map;
+
+    const cvs = document.createElement('canvas');
+    cvs.width = D;
+    cvs.height = D;
+    const c = cvs.getContext('2d');
+    const img = c.createImageData(D, D);
+    const out = img.data;
+
+    for (let k = 0, n = D * D; k < n; k++) {
+        const a = s.alpha[k];
+        const o = k * 4;
+
+        if (a === 0) {
+            out[o + 3] = 0;
+            continue;
+        }
+
+        // Spin the planet by sliding where we read the surface map
+        const u = (s.uArr[k] + shift) % MAP_W;
+        const m = (s.vArr[k] * MAP_W + u) * 3;
+        const it = s.shade[k];
+
+        out[o]     = map[m]     * it + s.rimAdd[k * 3];
+        out[o + 1] = map[m + 1] * it + s.rimAdd[k * 3 + 1];
+        out[o + 2] = map[m + 2] * it + s.rimAdd[k * 3 + 2];
+        out[o + 3] = a;
     }
 
     c.putImageData(img, 0, 0);
@@ -485,8 +590,28 @@ function bakePlanets() {
             p._ringShadowTex = baked.shadow;
         }
 
-        p._tex = bakePlanet(p);
+        p._map = bakeSurfaceMap(p);
+        p._shading = bakeShading(p);
+
+        // One frame per step of the rotation loop
+        p._frames = [];
+        for (let f = 0; f < ROT_FRAMES; f++) {
+            p._frames.push(composeFrame(p, Math.round(f / ROT_FRAMES * MAP_W)));
+        }
+
+        // The map and the per-pixel scratch buffers have done their job now.
+        // Only the finished frames are needed from here on.
+        p._map = null;
+        p._shading = null;
     });
+}
+
+
+// Which frame of the rotation is this planet showing right now
+function planetFrame(p, time) {
+    let i = Math.floor((time / p.rotPeriod) * ROT_FRAMES) % ROT_FRAMES;
+    if (i < 0) i += ROT_FRAMES;
+    return p._frames[i];
 }
 
 
@@ -495,19 +620,20 @@ function bakePlanets() {
 // ============================================
 
 // The plain case - one blit, that's the whole thing
-function drawPlanet(ctx, p) {
+function drawPlanet(ctx, p, time) {
     const s = p.size;
-    ctx.drawImage(p._tex, p.x - s, p.y - s, s * 2, s * 2);
+    ctx.drawImage(planetFrame(p, time), p.x - s, p.y - s, s * 2, s * 2);
 }
 
 // Saturn needs the ring split into a far half and a near half, with the
 // planet sandwiched between them. Drawing the ring as one complete ellipse
 // on top - which is what this used to do - makes it look like a hoop that
 // was pasted on, because the far side never goes behind the planet.
-function drawRingedPlanet(ctx, p) {
+function drawRingedPlanet(ctx, p, time) {
     const s = p.size;
     const ro = s * p.ringOuter;          // Ring outer radius on screen
     const rh = ro * p.ringSquash;        // Squashed vertical radius
+    const tex = planetFrame(p, time);
 
     ctx.save();
     ctx.translate(p.x, p.y);
@@ -520,7 +646,7 @@ function drawRingedPlanet(ctx, p) {
     // --- PASS 2: the planet body, back in un-rotated space
     ctx.save();
     ctx.rotate(-p.ringTilt);
-    ctx.drawImage(p._tex, -s, -s, s * 2, s * 2);
+    ctx.drawImage(tex, -s, -s, s * 2, s * 2);
     ctx.restore();
 
     // --- The shadow the rings cast across the planet. Clipped to the
@@ -776,9 +902,9 @@ function animate(now) {
         }
 
         if (p.type === 'ringed') {
-            drawRingedPlanet(ctx, p);
+            drawRingedPlanet(ctx, p, time);
         } else {
-            drawPlanet(ctx, p);
+            drawPlanet(ctx, p, time);
         }
     });
 
