@@ -4,7 +4,7 @@
 
 **A Discord-themed portfolio with real-time Spotify integration**
 
-[Live Demo](https://ffenjil.site) · [Report Bug](https://github.com/ffenjil/stardust/issues) · [Request Feature](https://github.com/ffenjil/stardust/issues)
+[Live Demo](https://ffenjil.com) · [Report Bug](https://github.com/ffenjil/stardust/issues) · [Request Feature](https://github.com/ffenjil/stardust/issues)
 
 ---
 
