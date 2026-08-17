@@ -133,8 +133,15 @@
         <div class="content">
             
             <!-- My name and username - keeping it simple -->
+            <!--
+                The name is an h1 on purpose. It's the only real heading on the
+                page, and search engines lean on it to work out what this page
+                is actually about. As a plain div it carried no weight at all.
+                The styling is unchanged - .display-name sets the size and
+                weight, and the global reset already zeroes the h1 margin.
+            -->
             <div class="user-header">
-                <div class="display-name">J.</div>
+                <h1 class="display-name">J.</h1>
                 <div class="username">@ffenjil</div>
             </div>
 
