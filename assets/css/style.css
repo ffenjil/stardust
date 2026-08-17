@@ -384,11 +384,7 @@ body {
     background: #24292e; 
     box-shadow: 0 0 10px rgba(36, 41, 46, 0.4); 
 }
-.social-btn.reddit:hover { 
-    background: #FF4500; 
-    box-shadow: 0 0 10px rgba(255, 69, 0, 0.4); 
-}
-.social-btn.x:hover { 
+.social-btn.x:hover {
     background: #000; 
     border-color: #333; 
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.4); 
